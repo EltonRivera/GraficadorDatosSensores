@@ -15,7 +15,17 @@ import java.util.Enumeration;
 import java.util.TooManyListenersException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.title.TextTitle;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+import org.jfree.ui.HorizontalAlignment;
+import org.jfree.ui.RectangleEdge;
 
 /**
  * @author racsoraul
@@ -39,6 +49,17 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
 
     private static final int TIMEOUT = 2000; //Milisegundos de tiempo de espera
     private static final int DATA_RATE = 9600; //Velicidad de transmisión
+
+    /*Variables para la creación del gráfico */
+    //Varibles que contendrán los datos del sensor
+    XYSeries serieTemperatura = new XYSeries("Temperatura"); //Guarda los valores del sensor
+    XYSeriesCollection coleccionDeSeries = new XYSeriesCollection(); //Guarda las series de datos
+    //Variable para el gráfico
+    JFreeChart grafico;
+    //Constantes del gráfico
+    final String TITULO_DEL_GRAFICO = "Temperatura vs Tiempo";
+    final String EJE_HORIZONTAL_X = "Tiempo (s)";
+    final String EJE_VERTICAL_Y = "Temperatura (°C)";
 
     //Constructor de la clase
     public Graficador_Frame() {
@@ -109,6 +130,11 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jButton_graficar.setText("Graficar");
+        jButton_graficar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_graficarActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -130,21 +156,70 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
+    private void jButton_graficarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_graficarActionPerformed
+
+        //Elaborando gráfico
+        armarGrafico();
+        //Mostrando gráfico
+        mostrarGrafico();
+    }//GEN-LAST:event_jButton_graficarActionPerformed
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton_graficar;
     // End of variables declaration//GEN-END:variables
 
+    int i = 0;
+
     //Recepción de datos.
+
     @Override
     public void serialEvent(SerialPortEvent spe) {
         if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
+                i++;
                 String inputLine = input.readLine();
-
+                serieTemperatura.add(i, Integer.parseInt(inputLine));
             } catch (IOException ex) {
                 Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+
+    private void armarGrafico() {
+        /*Armar gráfico*/
+        serieTemperatura.add(0, 0); //Coordenada en el origen para que el gráfico inicie ahi.
+        coleccionDeSeries.addSeries(serieTemperatura);
+        grafico = ChartFactory.createXYLineChart(TITULO_DEL_GRAFICO, EJE_HORIZONTAL_X, EJE_VERTICAL_Y,
+                coleccionDeSeries, PlotOrientation.VERTICAL, true, true, false);
+        
+        /*Agregando subtítulos al gráfico*/
+        //Agregando subtítulo personalizado
+        TextTitle source = new TextTitle(
+                "Taller COMPDES 2014"
+        );
+        source.setPosition(RectangleEdge.BOTTOM);
+        source.setHorizontalAlignment(HorizontalAlignment.RIGHT);
+        grafico.addSubtitle(source);
+        
+        //Agregando subtitulos en posición por defecto
+        grafico.addSubtitle(new TextTitle("Universidad de El Salvador"));
+        grafico.addSubtitle(new TextTitle("Facultad de Ingeniería y Arquitectura"));
+
+    }
+    
+    private void mostrarGrafico() {
+        //Creando panel para el gráfico
+        ChartPanel chartPanel = new ChartPanel(grafico);
+        //Creando ventana para agregar panel del gráfico
+        JFrame ventana = new JFrame("Gráfico de sensores");
+        //Agregando panel a la ventana
+        ventana.getContentPane().add(chartPanel);
+        //Asignando dimensiones por defecto
+        ventana.pack();
+        //Volviendo visible la ventana
+        ventana.setVisible(true);
+        ventana.setLocationRelativeTo(null);
+        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     }
 }
