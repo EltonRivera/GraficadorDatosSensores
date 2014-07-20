@@ -53,19 +53,23 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     /*Variables para la creación del gráfico */
     //Varibles que contendrán los datos del sensor
     XYSeries serieTemperatura = new XYSeries("Temperatura"); //Guarda los valores del sensor
-    XYSeriesCollection coleccionDeSeries = new XYSeriesCollection(); //Guarda las series de datos
+    XYSeriesCollection coleccionDeSeries; //Guarda las series de datos
     //Variable para el gráfico
     JFreeChart grafico;
     //Constantes del gráfico
     final String TITULO_DEL_GRAFICO = "Temperatura vs Tiempo";
     final String EJE_HORIZONTAL_X = "Tiempo (s)";
     final String EJE_VERTICAL_Y = "Temperatura (°C)";
+    
+     Medidor medidor = new Medidor("Temperatura °C");
 
     //Constructor de la clase
     public Graficador_Frame() {
         initComponents();
         //Iniciando conexión con puerto serial
         inicializarConexion();
+        //Elaborando gráfico
+        armarGrafico();
     }
 
     //Estableciendo conexión con Arduino
@@ -108,8 +112,6 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
             //Habilitando evento en el que estamos interesado
             serialPort.notifyOnDataAvailable(true);
 
-            input = new BufferedReader(new InputStreamReader(serialPort.getInputStream()));
-
             /*FIN de parametros de entrada y salida de datos*/
         } catch (PortInUseException | UnsupportedCommOperationException | IOException | TooManyListenersException ex) {
             Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
@@ -119,6 +121,24 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
 
     private void mostrarError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "ERROR", JOptionPane.ERROR_MESSAGE);
+    }
+
+    //Hace el valor de 1 segundo (Asumiendo en Arduino haber colocado delay(1000))
+    int X = 0;
+
+    //Recepción de datos.
+    @Override
+    public void serialEvent(SerialPortEvent spe) {
+        if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
+            try {
+                X++;
+                String inputLine = input.readLine();
+                serieTemperatura.add(X, Integer.parseInt(inputLine));
+                medidor.setTemperatura(inputLine);
+            } catch (IOException ex) {
+                Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -151,11 +171,11 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap()
+                .addContainerGap(42, Short.MAX_VALUE)
                 .addComponent(jButton_medidor)
-                .addGap(18, 18, 18)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jButton_grafica, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addGap(38, 38, 38))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -172,17 +192,14 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
 
     private void jButton_graficaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_graficaActionPerformed
 
-        //Elaborando gráfico
-        armarGrafico();
         //Mostrando gráfico
         mostrarGrafico();
     }//GEN-LAST:event_jButton_graficaActionPerformed
 
     private void jButton_medidorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_medidorActionPerformed
 
-        Medidor dialDemo1 = new Medidor("");
-        dialDemo1.setVisible(true);
-        dialDemo1.pack();
+        //Mostrar medidor
+        mostrarMedidor();
     }//GEN-LAST:event_jButton_medidorActionPerformed
 
 
@@ -191,30 +208,14 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     private javax.swing.JButton jButton_medidor;
     // End of variables declaration//GEN-END:variables
 
-    int X = 0;
-
-    //Recepción de datos.
-
-    @Override
-    public void serialEvent(SerialPortEvent spe) {
-        if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
-            try {
-                X++;
-                String inputLine = input.readLine();
-                serieTemperatura.add(X, Integer.parseInt(inputLine));
-            } catch (IOException ex) {
-                Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
-    }
-
     private void armarGrafico() {
         /*Armar gráfico*/
-        serieTemperatura.add(0, 0); //Coordenada en el origen para que el gráfico inicie ahi.
-        coleccionDeSeries.addSeries(serieTemperatura);
+        serieTemperatura.add(0, 0); //Coordenada en el origen para que el gráfico inicie ahi
+        coleccionDeSeries = new XYSeriesCollection(); //Inicializamos la coleccion de datos
+        coleccionDeSeries.addSeries(serieTemperatura); //Agreganos la serie de datos
         grafico = ChartFactory.createXYLineChart(TITULO_DEL_GRAFICO, EJE_HORIZONTAL_X, EJE_VERTICAL_Y,
                 coleccionDeSeries, PlotOrientation.VERTICAL, true, true, false);
-        
+
         /*Agregando subtítulos al gráfico*/
         //Agregando subtítulo personalizado
         TextTitle source = new TextTitle(
@@ -223,13 +224,18 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         source.setPosition(RectangleEdge.BOTTOM);
         source.setHorizontalAlignment(HorizontalAlignment.RIGHT);
         grafico.addSubtitle(source);
-        
+
         //Agregando subtitulos en posición por defecto
         grafico.addSubtitle(new TextTitle("Universidad de El Salvador"));
         grafico.addSubtitle(new TextTitle("Facultad de Ingeniería y Arquitectura"));
 
     }
-    
+
+    private void mostrarMedidor() {
+        medidor.setVisible(true);
+        medidor.pack();
+    }
+
     private void mostrarGrafico() {
         //Creando panel para el gráfico
         ChartPanel chartPanel = new ChartPanel(grafico);
@@ -242,6 +248,6 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         //Volviendo visible la ventana
         ventana.setVisible(true);
         ventana.setLocationRelativeTo(null);
-        ventana.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        ventana.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }
