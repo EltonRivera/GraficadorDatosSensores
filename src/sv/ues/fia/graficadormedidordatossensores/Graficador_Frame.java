@@ -1,4 +1,4 @@
-package sv.ues.fia.graficadordatossensores;
+package sv.ues.fia.graficadormedidordatossensores;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.PortInUseException;
@@ -125,14 +125,24 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jButton_graficar = new javax.swing.JButton();
+        jButton_grafica = new javax.swing.JButton();
+        jButton_medidor = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Medidor de temperatura");
+        setBackground(new java.awt.Color(51, 51, 51));
 
-        jButton_graficar.setText("Graficar");
-        jButton_graficar.addActionListener(new java.awt.event.ActionListener() {
+        jButton_grafica.setText("Gráfica");
+        jButton_grafica.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton_graficarActionPerformed(evt);
+                jButton_graficaActionPerformed(evt);
+            }
+        });
+
+        jButton_medidor.setText("Medidor");
+        jButton_medidor.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton_medidorActionPerformed(evt);
             }
         });
 
@@ -140,36 +150,48 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(76, 76, 76)
-                .addComponent(jButton_graficar)
-                .addContainerGap(85, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jButton_medidor)
+                .addGap(18, 18, 18)
+                .addComponent(jButton_grafica, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(42, 42, 42)
-                .addComponent(jButton_graficar)
-                .addContainerGap(45, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(43, 43, 43)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton_grafica)
+                    .addComponent(jButton_medidor))
+                .addContainerGap(44, Short.MAX_VALUE))
         );
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton_graficarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_graficarActionPerformed
+    private void jButton_graficaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_graficaActionPerformed
 
         //Elaborando gráfico
         armarGrafico();
         //Mostrando gráfico
         mostrarGrafico();
-    }//GEN-LAST:event_jButton_graficarActionPerformed
+    }//GEN-LAST:event_jButton_graficaActionPerformed
+
+    private void jButton_medidorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton_medidorActionPerformed
+
+        Medidor dialDemo1 = new Medidor("");
+        dialDemo1.setVisible(true);
+        dialDemo1.pack();
+    }//GEN-LAST:event_jButton_medidorActionPerformed
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton_graficar;
+    private javax.swing.JButton jButton_grafica;
+    private javax.swing.JButton jButton_medidor;
     // End of variables declaration//GEN-END:variables
 
-    int i = 0;
+    int X = 0;
 
     //Recepción de datos.
 
@@ -177,9 +199,9 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     public void serialEvent(SerialPortEvent spe) {
         if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
-                i++;
+                X++;
                 String inputLine = input.readLine();
-                serieTemperatura.add(i, Integer.parseInt(inputLine));
+                serieTemperatura.add(X, Integer.parseInt(inputLine));
             } catch (IOException ex) {
                 Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
             }

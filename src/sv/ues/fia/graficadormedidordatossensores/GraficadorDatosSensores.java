@@ -1,4 +1,4 @@
-package sv.ues.fia.graficadordatossensores;
+package sv.ues.fia.graficadormedidordatossensores;
 
 /**
  * @author racsoraul
