@@ -61,6 +61,7 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     final String EJE_HORIZONTAL_X = "Tiempo (s)";
     final String EJE_VERTICAL_Y = "Temperatura (°C)";
 
+    //Instanciamiento del medidor
     Medidor medidor = new Medidor("Temperatura °C");
 
     //Constructor de la clase
@@ -92,6 +93,7 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
                 }
             }
 
+            //Muestra el error cuando no detecta puerto a conectarse.
             if (puertoID == null) {
                 mostrarError("No se puede conectar al puerto");
                 System.exit(ERROR);
@@ -119,19 +121,20 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
 
     }
 
+    //Mètodo para mostrar el error cuando no detecta puerto a conectarse.
     private void mostrarError(String mensaje) {
         JOptionPane.showMessageDialog(this, mensaje, "ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
-    float maxC = 0, minC = 100;  //Variables para ir comprobando maximos y minimos de temperatura
+    //Variables para ir comprobando maximos y minimos de temperatura
+    float maxC = 0, minC = 100;
     float gradosC = 0;
     //Salida de informacion en TextArea
     String salidaActualMaximosMinimos = "";
-    //Hace el valor de los segundos
+    //Es el valor de los segundos
     int X = 0;
 
     //Recepción de datos.
-
     @Override
     public void serialEvent(SerialPortEvent spe) {
         if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
