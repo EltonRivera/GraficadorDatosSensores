@@ -6,7 +6,7 @@ package sv.ues.fia.graficadormedidordatossensores;
 public class GraficadorDatosSensores {
 
     public static void main(String[] args) {
-        
+
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
@@ -23,7 +23,7 @@ public class GraficadorDatosSensores {
             public void run() {
                 Graficador_Frame graficador_Frame = new Graficador_Frame();
                 graficador_Frame.setVisible(true);
-                graficador_Frame.setLocationRelativeTo(null);
+                graficador_Frame.setLocation(20, 510);
             }
         });
     }
