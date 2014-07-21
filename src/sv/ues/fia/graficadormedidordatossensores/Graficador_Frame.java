@@ -60,8 +60,8 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     final String TITULO_DEL_GRAFICO = "Temperatura vs Tiempo";
     final String EJE_HORIZONTAL_X = "Tiempo (s)";
     final String EJE_VERTICAL_Y = "Temperatura (°C)";
-    
-     Medidor medidor = new Medidor("Temperatura °C");
+
+    Medidor medidor = new Medidor("Temperatura °C");
 
     //Constructor de la clase
     public Graficador_Frame() {
@@ -123,20 +123,43 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
         JOptionPane.showMessageDialog(this, mensaje, "ERROR", JOptionPane.ERROR_MESSAGE);
     }
 
-    //Hace el valor de 1 segundo (Asumiendo en Arduino haber colocado delay(1000))
+    float maxC = 0, minC = 100;  //Variables para ir comprobando maximos y minimos de temperatura
+    float gradosC = 0;
+    //Salida de informacion en TextArea
+    String salidaActualMaximosMinimos = "";
+    //Hace el valor de los segundos
     int X = 0;
 
     //Recepción de datos.
+
     @Override
     public void serialEvent(SerialPortEvent spe) {
         if (spe.getEventType() == SerialPortEvent.DATA_AVAILABLE) {
             try {
                 X++;
+                //Lectura de lo que se encuentra en el puerto serial
                 String inputLine = input.readLine();
-                serieTemperatura.add(X, Integer.parseInt(inputLine));
+                //Conversion de la entrada de ºC a float
+                gradosC = Float.parseFloat(inputLine);
+                //Comprobacion de maximos y minimos de temperatura
+                if (maxC < gradosC) {
+                    maxC = gradosC;
+                }
+                if (gradosC < minC) {
+                    minC = gradosC;
+                }
+                salidaActualMaximosMinimos = "";
+                //Salidas en TextArea
+                salidaActualMaximosMinimos = "Medida actual:\n "+gradosC+"ºC";
+                salidaActualMaximosMinimos = salidaActualMaximosMinimos + "\nMedida máxima:\n "+maxC+"ºC";
+                salidaActualMaximosMinimos = salidaActualMaximosMinimos + "\nMedida mínima:\n "+minC+"ºC";
+                jTextArea_salida.setText(salidaActualMaximosMinimos);
+                
+                //Estableciendo serie de datos para la grafica
+                serieTemperatura.add(X, gradosC);
+                //Estableciendo valor para el medidor de temperatura
                 medidor.setTemperatura(inputLine);
             } catch (IOException ex) {
-                Logger.getLogger(Graficador_Frame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
@@ -147,10 +170,13 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
 
         jButton_grafica = new javax.swing.JButton();
         jButton_medidor = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        jTextArea_salida = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Medidor de temperatura");
         setBackground(new java.awt.Color(51, 51, 51));
+        setResizable(false);
 
         jButton_grafica.setText("Gráfica");
         jButton_grafica.addActionListener(new java.awt.event.ActionListener() {
@@ -166,25 +192,39 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
             }
         });
 
+        jTextArea_salida.setEditable(false);
+        jTextArea_salida.setBackground(new java.awt.Color(0, 0, 0));
+        jTextArea_salida.setColumns(20);
+        jTextArea_salida.setFont(new java.awt.Font("Monospaced", 0, 16)); // NOI18N
+        jTextArea_salida.setForeground(new java.awt.Color(255, 255, 255));
+        jTextArea_salida.setRows(5);
+        jScrollPane1.setViewportView(jTextArea_salida);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(42, Short.MAX_VALUE)
-                .addComponent(jButton_medidor)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jButton_grafica, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(38, 38, 38))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jButton_medidor, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addComponent(jButton_grafica, javax.swing.GroupLayout.PREFERRED_SIZE, 103, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 3, Short.MAX_VALUE)))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(43, 43, 43)
+                .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton_grafica)
-                    .addComponent(jButton_medidor))
-                .addContainerGap(44, Short.MAX_VALUE))
+                    .addComponent(jButton_medidor)
+                    .addComponent(jButton_grafica))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 155, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -206,6 +246,8 @@ public class Graficador_Frame extends javax.swing.JFrame implements SerialPortEv
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton_grafica;
     private javax.swing.JButton jButton_medidor;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTextArea jTextArea_salida;
     // End of variables declaration//GEN-END:variables
 
     private void armarGrafico() {
